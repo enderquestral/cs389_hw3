@@ -58,7 +58,7 @@ TEST_CASE("fifo", "[evictor]")
 
 TEST_CASE("lru", "[evictor]")
 {
-  LruEvictor e{};
+  LruEvictor e;
   vector<char const *> s = {"foo", "bar", "baz", "bim", "bam", "bol"};
   SECTION("basic")
   {
