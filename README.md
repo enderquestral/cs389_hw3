@@ -34,3 +34,8 @@ Each "test" is a section, with test code found in `test_evictors.cc` and `test_c
 |-----------|---------------------------------------------|--------|
 | basic     | evictor is stable, returns "" on empty      | pass   |
 | juggle    | evictor will not reject recently given keys | pass   |
+
+
+Note: There are cache/evictor submissions after Monday. This is to reflect
+updates made on the homework 2 repository, as that due date was extended to before
+class on Wednesday.
