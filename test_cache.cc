@@ -29,7 +29,7 @@ TEST_CASE("plain cache", "[cache]")
     REQUIRE(strcmp(res, should_be) == 0);
   }
 
-  SECTION("empty queary")
+  SECTION("empty query")
   {
     REQUIRE(c.get("baz", size) == nullptr);
     REQUIRE(size == 0);
@@ -54,6 +54,8 @@ TEST_CASE("plain cache", "[cache]")
     REQUIRE(c.space_used() == 13);
     REQUIRE(c.del("foo2") == true);
     REQUIRE(c.space_used() == 8);
+    REQUIRE(c.get("foo2", size) == nullptr);
+    REQUIRE(c.del("bar") == false);
   }
 
   SECTION("reset")
