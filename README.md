@@ -5,13 +5,14 @@ I used the testing framework Catch2. I have 4 test cases: plain cache, cache int
 Each "test" is a section, with test code found in `test_evictors.cc` and `test_cache.cc`. 
 
 ### Plain Cache
-| test name       | description                            | status |
-|-----------------|----------------------------------------|--------|
-| basic insertion | can keys and values be inserted        | pass   |
-| empty query     | uninserted items are not found         | pass   |
-| basic delete    | delete removes items                   | pass   |
-| reset           | reset removes all items                | pass   |
-| duplicates      | duplicate entries overwrite eachtother | pass   |
+| test name       | description                                                          | status |
+|-----------------|----------------------------------------------------------------------|--------|
+| basic insertion | can keys and values be inserted                                      | pass   |
+| empty query     | uninserted items are not found                                       | pass   |
+| basic delete    | delete removes items                                                 | pass   |
+| reset           | reset removes all items                                              | pass   |
+| duplicates      | duplicate entries overwrite eachtother                               | pass   |
+| full cache      | a cache will fill up until it hits its capacity, then it wont accept | pass   |
 
 ### Cache Integration
 | test name       | description                                       | status |

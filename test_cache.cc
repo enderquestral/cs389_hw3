@@ -10,14 +10,16 @@
 using namespace std;
 
 // This will handle tests of the cache_lib and evictor_lib files
-void set_string(Cache &c, string key, char const *val)
+uint32_t set_string(Cache &c, string key, char const *val)
 {
   c.set(key, val, strlen(val) + 1);
+  return strlen(val) + 1;
 }
 
 TEST_CASE("plain cache", "[cache]")
 {
-  Cache c(1024);
+  const uint32_t cache_size(1024);
+  Cache c(cache_size);
   uint32_t size;
   SECTION("basic insertion")
   {
@@ -81,6 +83,24 @@ TEST_CASE("plain cache", "[cache]")
       }
     }
     REQUIRE(c.space_used() == 24);
+  }
+
+  SECTION("full cache")
+  {
+    uint32_t max_val(0);
+    uint32_t running_sum(0);
+    for (uint32_t x = 0; x < cache_size; x++) {
+      uint32_t current = set_string(c, to_string(x), to_string(x).c_str());
+      if (running_sum + current > cache_size && running_sum < cache_size) {
+        max_val = x - 1;
+      }
+      running_sum += current;
+    }
+    REQUIRE(c.space_used() <= cache_size);
+    REQUIRE(strcmp(c.get(to_string(1), size), to_string(1).c_str()) == 0);
+    REQUIRE(strcmp(c.get(to_string(max_val), size),
+                   to_string(max_val).c_str()) == 0);
+    REQUIRE(c.get(to_string(max_val + 1), size) == nullptr);
   }
 }
 
