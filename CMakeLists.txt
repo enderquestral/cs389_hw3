@@ -22,17 +22,9 @@ find_package(Catch2 REQUIRED)
 include(CTest)
 include(Catch)
 
-add_executable(catch test.cc)
-target_link_libraries(catch Catch2::Catch2 test_cache test_evictors)
+add_executable(catch test.cc test_cache.cc test_evictors.cc)
+target_link_libraries(catch Catch2::Catch2 cache evictor)
 catch_discover_tests(catch)
-
-# basic test of raw cache
-add_library(test_cache test_cache.cc)
-target_link_libraries(test_cache PUBLIC cache evictor Catch2::Catch2)
-
-# test of evictors
-add_library(test_evictors test_evictors.cc)
-target_link_libraries(test_evictors PUBLIC cache evictor Catch2::Catch2)
 
 # setup tests to run on build
 add_custom_target(MainTest ALL)
