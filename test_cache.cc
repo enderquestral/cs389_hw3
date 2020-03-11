@@ -21,8 +21,11 @@ TEST_CASE("plain cache", "[cache]")
   const uint32_t cache_size(1024);
   Cache c(cache_size);
   uint32_t size;
-  SECTION("basic insertion")
+  SECTION("insert + get")
   {
+    // Show that an item can be inserted into the cache and that it can be
+    // retrieved from the cache This is one test because we cannot observe an
+    // item being inserted.
     char const *should_be = "bar";
 
     set_string(c, "Foo", should_be);
@@ -33,16 +36,8 @@ TEST_CASE("plain cache", "[cache]")
 
   SECTION("empty query")
   {
-    REQUIRE(c.get("baz", size) == nullptr);
-    REQUIRE(size == 0);
-
+    // if an element is not in a cache, it should not be found
     set_string(c, "foo", "bar");
-
-    REQUIRE(c.get("baz", size) == nullptr);
-    REQUIRE(size == 0);
-
-    REQUIRE(c.get("foo", size) != nullptr);
-    REQUIRE(size == 4);
 
     REQUIRE(c.get("baz", size) == nullptr);
     REQUIRE(size == 0);
@@ -50,9 +45,12 @@ TEST_CASE("plain cache", "[cache]")
 
   SECTION("basic delete")
   {
+    // We add some items to the cache. then show that del removes an item, and
+    // that deleting a non-present item returns false
     set_string(c, "foo", "bar");
     set_string(c, "foo2", "barz");
     set_string(c, "foo3", "baz");
+
     REQUIRE(c.space_used() == 13);
     REQUIRE(c.del("foo2") == true);
     REQUIRE(c.space_used() == 8);
@@ -62,27 +60,34 @@ TEST_CASE("plain cache", "[cache]")
 
   SECTION("reset")
   {
+    // reset gives an empty cache
     vector<char const *> s = {"foo", "bar", "baz", "bim", "bam", "bol"};
 
     for (unsigned long x = 0; x < s.size(); x++) {
-
       set_string(c, to_string(x), s[x]);
     }
     c.reset();
+
     REQUIRE(c.space_used() == 0);
     REQUIRE(c.get("bol", size) == nullptr);
+    REQUIRE(c.get("foo", size) == nullptr);
   }
 
   SECTION("duplicates")
   {
-    vector<char const *> s = {"foo", "bar", "baz", "bim", "bam", "bol"};
+    // duplicates do not add to the cache size, and they are overwritten
+    vector<char const *> s = {
+        "foo", "bar", "baz", "bim", "bam",
+    };
 
-    for (unsigned long x = 0; x < s.size(); x++) {
+    unsigned long x;
+    for (x = 0; x < s.size(); x++) {
       for (int i = 0; i < 5; i++) {
-        set_string(c, to_string(x), s[x]);
+        set_string(c, to_string(x), s[s.size() - 1 - i]);
       }
     }
-    REQUIRE(c.space_used() == 24);
+    REQUIRE(c.space_used() == 20);
+    REQUIRE(strcmp(c.get(to_string(1), size), s[0]) == 0);
   }
 
   SECTION("full cache")
@@ -101,6 +106,15 @@ TEST_CASE("plain cache", "[cache]")
     REQUIRE(strcmp(c.get(to_string(max_val), size),
                    to_string(max_val).c_str()) == 0);
     REQUIRE(c.get(to_string(max_val + 1), size) == nullptr);
+  }
+
+  SECTION("unsafe key")
+  {
+    for (int i = 0; i < 6; i++) {
+      set_string(c, to_string(i), to_string(i).c_str());
+    }
+    auto res = c.get(to_string(2), size);
+    REQUIRE(strcmp(res, to_string(2).c_str()) == 0);
   }
 }
 
@@ -128,7 +142,7 @@ TEST_CASE("cache integration", "[cache]")
 
     SECTION("duplicates")
     {
-
+      // the evictor should be invariant under duplicates
       vector<char const *> s = {"foo", "bar", "baz", "bim", "bam", "bol"};
       vector<string> k = {"zero", "one", "two", "three", "four", "five"};
       for (unsigned long i = 0; i < 6; i++) {
@@ -146,16 +160,6 @@ TEST_CASE("cache integration", "[cache]")
       }
       REQUIRE(c.space_used() <= 16);
     }
-
-    SECTION("unsafe key")
-    {
-      vector<char const *> s = {"foo", "bar", "baz", "bim", "bam", "bol"};
-      for (int i = 0; i < 6; i++) {
-        set_string(c, to_string(i), s[i]);
-      }
-      auto res = c.get(to_string(2), size);
-      REQUIRE(res != nullptr);
-    }
   }
 
   SECTION("lru integration")
@@ -164,7 +168,7 @@ TEST_CASE("cache integration", "[cache]")
     Cache c(16, 0.75, &e);
     uint32_t size;
 
-    SECTION("basic")
+    SECTION("robustness")
     {
       vector<char const *> s = {"foo", "bar", "baz", "bim", "bam", "bol"};
       for (int i = 0; i < 6; i++) {
@@ -175,7 +179,7 @@ TEST_CASE("cache integration", "[cache]")
       REQUIRE(c.get(to_string(1), size) == nullptr);
     }
 
-    SECTION("juggle")
+    SECTION("scale")
     {
       Cache::val_type got;
       vector<const char *> foobarz = {"foo", "barz", "flube"};

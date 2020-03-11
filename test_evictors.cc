@@ -42,15 +42,15 @@ TEST_CASE("fifo", "[evictor]")
     REQUIRE(e.evict() == "");
   }
 
-  SECTION("unsafe keys")
+  SECTION("unsafe item")
   {
 
     REQUIRE(e.evict() == "");
     for (unsigned long i = 0; i < 20; i++) {
-      e.touch_key(to_string(i));
+      e.touch_key(to_string(i).c_str());
     }
     for (unsigned long i = 0; i < 20; i++) {
-      REQUIRE(e.evict() == to_string(i));
+      REQUIRE(e.evict() == to_string(i).c_str());
     }
     REQUIRE(e.evict() == "");
   }
@@ -82,6 +82,19 @@ TEST_CASE("lru", "[evictor]")
       REQUIRE(e.evict() == s[i]);
     }
     REQUIRE(e.evict() == s[0]);
+    REQUIRE(e.evict() == "");
+  }
+
+  SECTION("unsafe item")
+  {
+
+    REQUIRE(e.evict() == "");
+    for (unsigned long i = 0; i < 20; i++) {
+      e.touch_key(to_string(i).c_str());
+    }
+    for (unsigned long i = 0; i < 20; i++) {
+      REQUIRE(e.evict() == to_string(i).c_str());
+    }
     REQUIRE(e.evict() == "");
   }
 }
